@@ -53,51 +53,47 @@ classdef UCM
                 error("The number of columns in the element matrix must equal the number of columns in the jacobian matrix.");
             end
 
-            % assigning properties to the object
-            obj.elements = elements;
-            obj.jacobian = jacobian;
-
             % taking inputs and determining covariance matrix of elements
             cov_el = cov(elements);
-            obj.cov_el = cov_el;
             ucm_basis = null(jacobian);
             ort_basis = normalize(jacobian', 'norm', 2);
-            obj.ucm_basis = ucm_basis;
-            obj.ort_basis = ort_basis;
 
             % assigning dimensionality of the spaces
             ucm_size = size(ucm_basis);
             ort_size = size(ort_basis);
             dim_ucm = ucm_size(2);
             dim_ort = ort_size(2);
-            obj.dim_ucm = dim_ucm;
-            obj.dim_ort = dim_ort;
-            % very frustrating that matlab doesn't permit me to just do
-            % obj.dim_ucm = size(ucm_basis)(2), like python would.
-            % In python, using numpy, this would simply be
-            % obj.dim_ucm = ucm_basis.shape[1]
 
             % creating orthonormal basis spanning the space of elements
             S = [ort_basis ucm_basis];
-            obj.S = S;
 
             % projecting data covariance onto orthonormal basis S
             cov_s = S' * cov_el * S; % = cov(elements * S)
-            obj.cov_s = cov_s;
 
             % extracting variances
             variances = diag(cov_s);
-            vort_tot = variances(1:dim_ort);
-            vucm_tot = variances(dim_ort+1:dim_ucm);
+            vort_tot = sum(variances(1:dim_ort));
+            vucm_tot = sum(variances((dim_ort+1):(dim_ucm+dim_ort)));
 
             % assigning variances to object and normalizing by dimension
             vucm_norm = vucm_tot / dim_ucm;
             vort_norm = vort_tot / dim_ort;
-            obj.vucm = vucm_norm;
-            obj.vort = vort_norm;
 
             % solving for and storing synergy index values
             synergy_index = vucm_norm - vort_norm / (vucm_norm + vort_norm);
+
+            % assigning attributes to object
+            obj.elements = elements;
+            obj.jacobian = jacobian;
+            obj.cov_el = cov_el;
+            obj.ucm_basis = ucm_basis;
+            obj.ort_basis = ort_basis;
+            obj.cov_s = cov_s;
+            obj.S = S;
+            obj.vucm = vucm_norm;
+            obj.vort = vort_norm;
+            obj.dim_ucm = dim_ucm;
+            obj.dim_ort = dim_ort;
             obj.dv = synergy_index;
             obj.dvz = atanh(synergy_index);
         end
