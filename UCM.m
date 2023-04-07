@@ -80,7 +80,7 @@ classdef UCM
             vort_norm = vort_tot / dim_ort;
 
             % solving for and storing synergy index values
-            synergy_index = vucm_norm - vort_norm / (vucm_norm + vort_norm);
+            synergy_index = (vucm_norm - vort_norm) / (vucm_norm + vort_norm);
 
             % assigning attributes to object
             obj.elements = elements;
